@@ -23,7 +23,8 @@ ui <- fluidPage(
         text-align: center;
         padding-top: 50px;
       }
-    "))
+    ")),
+    uiOutput("dynamic_css")
   ),
   
   titlePanel(
@@ -55,7 +56,7 @@ ui <- fluidPage(
       selectInput(
         "jenis_chart",
         tags$b("3. Pilih Jenis Chart"),
-        choices = c("Bar", "Column", "Pie", "Treemap", "Histogram", "Box & Whisker", "Line",  "Area", "X Y (Scatter)")
+        choices = c("Bar", "Column", "Pie", "Treemap", "Histogram", "Box Plot", "Line",  "Area", "Scatter Plot")
       ),
       
       sliderInput(
@@ -108,7 +109,7 @@ ui <- fluidPage(
           tags$div(
             style = "text-align: center; color: #95a5a6; padding-top: 150px;",
             icon("inbox", class = "fa-5x"),
-            tags$h3("Ruang Kerja Kosong", style = "font-weight: bold; color: #662D91; margin-top: 20px;"),
+            tags$h3("Ruang Kerja Kosong", style = "font-weight: bold; color: #25374C; margin-top: 20px;"),
             tags$p("Mari mulai dengan mengunggah data CSV di panel sebelah kiri.")
           )
         ),
@@ -133,6 +134,18 @@ server <- function(input, output, session) {
       session$setCurrentTheme(bs_theme(bootswatch = "darkly", primary = "#1389CA"))
     } else {
       session$setCurrentTheme(bs_theme(bootswatch = "flatly", primary = "#1389CA"))
+    }
+  })
+  
+  output$dynamic_css <- renderUI({
+    if (isTRUE(input$dark_mode)) {
+      tags$style(HTML("
+        .well, .control-label, b, .radio, .checkbox, span {color: #ffffff !important;}
+        .form-control, .selectize-input {background-color: #333333; color: #ffffff; border-color: #555555;}
+        .selectize-dropdown {background-color: #333333; color: #ffffff;}
+      "))
+    } else {
+      tags$style(HTML(""))
     }
   })
   
@@ -189,28 +202,51 @@ server <- function(input, output, session) {
       plot.margin = margin(t = 20, r = 30, b = 20, l = 20)
     )
     
-    # geom visualisasi: histogram, box & whisker
-    if (jenis %in% c("Histogram", "Box & Whisker")) {
+    # geom visualisasi: histogram, box plot
+    if (jenis %in% c("Histogram", "Box Plot")) {
       
-      # tolak jika data berupa teks
       validate(
         need(is.numeric(df[[kolom]]), "⚠️ Jenis grafik ini membutuhkan data numerik.")
       )
       
-      # delete NA
-      df_num <- df %>% filter(!is.na(.data[[kolom]]))
+      df_num <- df |> 
+        filter(!is.na(.data[[kolom]]))
       
       if (jenis == "Histogram") {
-        p <- ggplot(df_num, aes(x = .data[[kolom]])) +
-          geom_histogram(fill = warna_tunggal, color = "white", bins = 15) +
-          labs(title = judul_grafik, x = "Nilai / Rentang Angka", y = "Frekuensi") +
-          theme_minimal() + tema_teks
+        p <- ggplot(
+          df_num,
+          aes(x = .data[[kolom]])
+        ) +
+          geom_histogram(
+            fill = warna_tunggal, 
+            color = "white", 
+            bins = 15
+          ) +
+          labs(
+            title = judul_grafik, 
+            x = "Nilai / Rentang Angka", 
+            y = "Frekuensi"
+          ) +
+          theme_minimal() + 
+          tema_teks
         
-      } else if (jenis == "Box & Whisker") {
-        p <- ggplot(df_num, aes(y = .data[[kolom]], x = "")) +
-          geom_boxplot(fill = warna_tunggal, color = warna_teks, width = 0.4) +
-          labs(title = judul_grafik, x = "Distribusi Keseluruhan", y = "Nilai") +
-          theme_minimal() + tema_teks
+      } else if (jenis == "Box Plot") {
+        p <- ggplot(
+          df_num, 
+          aes(y = .data[[kolom]], x = "")
+        ) +
+          geom_boxplot(
+            fill = warna_tunggal, 
+            color = warna_teks, 
+            width = 0.4
+          ) +
+          labs(
+            title = judul_grafik, 
+            x = "Distribusi Keseluruhan", 
+            y = "Nilai"
+          ) +
+          theme_minimal() + 
+          tema_teks
       }
       return(p)
       
@@ -226,9 +262,11 @@ server <- function(input, output, session) {
         count(.data[[kolom]], name = "Frekuensi") |> 
         arrange(desc(Frekuensi)) |> 
         slice_head(n = input$top_n) |> 
-        mutate(Persentase = Frekuensi / sum(Frekuensi) * 100,
-               Label_Persen = paste0(round(Persentase, 1), "%"),
-               Label_Lengkap = paste0(Frekuensi, " (", Label_Persen, ")"))
+        mutate(
+          Persentase = Frekuensi / sum(Frekuensi) * 100,
+          Label_Persen = paste0(round(Persentase, 1), "%"),
+          Label_Lengkap = paste0(Frekuensi, " (", Label_Persen, ")")
+        )
       
       if (opsi_palet == "pelangi") {
         warna_custom <- c("#DE2C2D", "#F37121", "#FAD201", "#8CC63F", "#1389CA", "#662D91")
@@ -240,30 +278,95 @@ server <- function(input, output, session) {
       names(palet_dinamis) <- df_clean[[kolom]]
       
       if (jenis == "Column") {
-        p <- ggplot(df_clean, aes(x = reorder(.data[[kolom]], -Frekuensi), y = Frekuensi)) +
-          geom_col(fill = warna_tunggal, color = "white", width = 0.75) +
-          geom_text(aes(label = Label_Lengkap), vjust = -0.5, size = 6.5, fontface = "bold", family = "sans", color = warna_teks) +
-          labs(title = judul_grafik, x = "Kategori Jawaban", y = "Jumlah (Frekuensi)") +
-          theme_minimal() + tema_teks +
-          theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-          scale_y_continuous(expand = expansion(mult = c(0, 0.2)))
+        p <- ggplot(
+          df_clean,
+          aes(x = reorder(.data[[kolom]], -Frekuensi), y = Frekuensi)
+        ) +
+          geom_col(
+            fill = warna_tunggal,
+            color = "white",
+            width = 0.75
+          ) +
+          geom_text(
+            aes(label = Label_Lengkap),
+            vjust = -0.5,
+            size = 6.5,
+            fontface = "bold",
+            family = "sans",
+            color = warna_teks
+          ) +
+          labs(
+            title = judul_grafik,
+            x = "Kategori Jawaban",
+            y = "Jumlah (Frekuensi)"
+          ) +
+          theme_minimal() +
+          tema_teks +
+          theme(
+            axis.text.x = element_text(angle = 45, hjust = 1)
+          ) +
+          scale_y_continuous(
+            expand = expansion(mult = c(0, 0.2))
+          )
         
       } else if (jenis == "Bar") {
-        p <- ggplot(df_clean, aes(x = reorder(.data[[kolom]], Frekuensi), y = Frekuensi)) +
-          geom_col(fill = warna_tunggal, color = "white", width = 0.75) +
-          geom_text(aes(label = Label_Lengkap), hjust = -0.1, size = 6.5, fontface = "bold", family = "sans", color = warna_teks) +
-          coord_flip() + labs(title = judul_grafik, x = "Kategori Jawaban", y = "Jumlah (Frekuensi)") +
-          theme_minimal() + tema_teks + 
-          scale_y_continuous(expand = expansion(mult = c(0, 0.2)))
+        p <- ggplot(
+          df_clean,
+          aes(x = reorder(.data[[kolom]], Frekuensi), y = Frekuensi)
+        ) +
+          geom_col(
+            fill = warna_tunggal,
+            color = "white",
+            width = 0.75
+          ) +
+          geom_text(
+            aes(label = Label_Lengkap),
+            hjust = -0.1,
+            size = 6.5,
+            fontface = "bold",
+            family = "sans",
+            color = warna_teks
+          ) +
+          coord_flip() + 
+          labs(
+            title = judul_grafik,
+            x = "Kategori Jawaban",
+            y = "Jumlah (Frekuensi)"
+          ) +
+          theme_minimal() +
+          tema_teks + 
+          scale_y_continuous(
+            expand = expansion(mult = c(0, 0.2))
+          )
         
       } else if (jenis == "Pie") {
-        p <- ggplot(df_clean, aes(x = "", y = Frekuensi, fill = .data[[kolom]])) +
-          geom_bar(stat = "identity", width = 1, color = "white") +
-          coord_polar("y", start = 0) +
+        p <- ggplot(
+          df_clean,
+          aes(x = "", y = Frekuensi, fill = .data[[kolom]])
+        ) +
+          geom_bar(
+            stat = "identity",
+            width = 1,
+            color = "white"
+          ) +
+          coord_polar(
+            "y", 
+            start = 0
+          ) +
           scale_fill_manual(values = palet_dinamis) +
-          geom_text(aes(label = Label_Persen), position = position_stack(vjust = 0.5), 
-                    color = "#ffffff", fontface = "bold", size = 6.5, family = "sans") + 
-          labs(title = judul_grafik, fill = "Kategori Jawaban") + theme_void() + tema_teks +
+          geom_text(
+            aes(label = Label_Persen),
+            position = position_stack(vjust = 0.5), 
+            color = "#ffffff",
+            fontface = "bold",
+            size = 6.5,
+            family = "sans"
+          ) + 
+          labs(
+            title = judul_grafik,
+            fill = "Kategori Jawaban"
+          ) + theme_void() + 
+          tema_teks +
           theme(
             axis.text = element_blank(),
             axis.title.x = element_blank(),
@@ -274,39 +377,129 @@ server <- function(input, output, session) {
           )
         
       } else if (jenis == "Treemap") {
-        p <- ggplot(df_clean, aes(area = Frekuensi, fill = .data[[kolom]], label = paste0(.data[[kolom]], "\n", Label_Persen))) +
-          geom_treemap(color = "white") +
-          scale_fill_manual(values = palet_dinamis) +
-          geom_treemap_text(family = "sans", color = "#ffffff", place = "centre", grow = FALSE, size = 24, fontface = "bold") + 
-          labs(title = judul_grafik) + theme_minimal() + tema_teks + theme(legend.position = "none")
+        p <- ggplot(
+          df_clean,
+          aes(area = Frekuensi, fill = .data[[kolom]], label = paste0(.data[[kolom]], "\n", Label_Persen))
+        ) +
+          geom_treemap(
+            color = "white"
+          ) +
+          scale_fill_manual(
+            values = palet_dinamis
+          ) +
+          geom_treemap_text(
+            family = "sans",
+            color = "#ffffff",
+            place = "centre",
+            grow = FALSE,
+            size = 24,
+            fontface = "bold"
+          ) + 
+          labs(
+            title = judul_grafik
+          ) + 
+          theme_minimal() + 
+          tema_teks + 
+          theme(
+            legend.position = "none"
+          )
         
       } else {
-        p_base <- ggplot(df_clean, aes(x = reorder(.data[[kolom]], -Frekuensi), y = Frekuensi)) +
-          labs(title = judul_grafik, x = "Kategori Jawaban", y = "Jumlah (Frekuensi)") +
-          theme_minimal() + tema_teks
+        p_base <- ggplot(
+          df_clean,
+          aes(x = reorder(.data[[kolom]], -Frekuensi), y = Frekuensi)
+        ) +
+          labs(
+            title = judul_grafik,
+            x = "Kategori Jawaban",
+            y = "Jumlah (Frekuensi)"
+          ) +
+          theme_minimal() + 
+          tema_teks
         
         if (opsi_palet == "pelangi") {
-          c_line1 <- "#EEA903"; c_point1 <- "#4A605E"; c_area2 <- "#EEC963"; c_line2 <- "#EEA903"; c_point2 <- "#4A605E"; c_scat <- "#4A605E"
+          c_line1 <- "#EEA903";
+          c_point1 <- "#4A605E";
+          c_area2 <- "#EEC963"; 
+          c_line2 <- "#EEA903"; 
+          c_point2 <- "#4A605E";
+          c_scat <- "#4A605E"
         } else {
-          c_line1 <- "#0072B2"; c_point1 <- "#D55E00"; c_area2 <- "#56B4E9"; c_line2 <- "#0072B2"; c_point2 <- "#E69F00"; c_scat <- "#009E73"
+          c_line1 <- "#0072B2";
+          c_point1 <- "#D55E00";
+          c_area2 <- "#56B4E9"; 
+          c_line2 <- "#0072B2"; 
+          c_point2 <- "#E69F00"; 
+          c_scat <- "#009E73"
         }
         
         if (jenis == "Line") {
-          p <- p_base + geom_line(aes(group = 1), color = c_line1, linewidth = 1.2) + 
-            geom_point(color = c_point1, size = 4) + 
-            geom_text(aes(label = Label_Persen), vjust = -1.2, size = 6.5, fontface = "bold", family = "sans", color = warna_teks) +
-            theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_continuous(expand = expansion(mult = c(0, 0.2)))
+          p <- p_base + 
+            geom_line(
+              aes(group = 1), 
+              color = c_line1, 
+              linewidth = 1.2
+            ) + 
+            geom_point(
+              color = c_point1, 
+              size = 4
+            ) + 
+            geom_text(
+              aes(label = Label_Persen), 
+              vjust = -1.2, 
+              size = 6.5, 
+              fontface = "bold", 
+              family = "sans", 
+              color = warna_teks
+            ) +
+            theme(
+              axis.text.x = element_text(angle = 45, hjust = 1)
+            ) + 
+            scale_y_continuous(
+              expand = expansion(mult = c(0, 0.2))
+            )
           
         } else if (jenis == "Area") {
-          p <- p_base + geom_area(aes(group = 1), fill = c_area2, alpha = 0.7) + 
-            geom_line(aes(group = 1), color = c_line2, linewidth = 1) + 
-            geom_point(color = c_point2, size = 3) + 
-            theme(axis.text.x = element_text(angle = 45, hjust = 1))
+          p <- p_base + 
+            geom_area(
+              aes(group = 1), 
+              fill = c_area2, 
+              alpha = 0.7
+            ) + 
+            geom_line(
+              aes(group = 1), 
+              color = c_line2, 
+              linewidth = 1
+            ) + 
+            geom_point(
+              color = c_point2, 
+              size = 3
+            ) + 
+            theme(
+              axis.text.x = element_text(angle = 45, hjust = 1)
+            )
           
-        } else if (jenis == "X Y (Scatter)") {
-          p <- p_base + geom_point(color = c_scat, size = 6, alpha = 0.9) + 
-            geom_text(aes(label = Label_Persen), vjust = -1.5, size = 6.5, fontface = "bold", family = "sans", color = warna_teks) +
-            theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_continuous(expand = expansion(mult = c(0, 0.2)))
+        } else if (jenis == "Scatter Plot") {
+          p <- p_base + 
+            geom_point(
+              color = c_scat, 
+              size = 6, 
+              alpha = 0.9
+            ) + 
+            geom_text(
+              aes(label = Label_Persen), 
+              vjust = -1.5, 
+              size = 6.5, 
+              fontface = "bold", 
+              family = "sans", 
+              color = warna_teks
+            ) +
+            theme(
+              axis.text.x = element_text(angle = 45, hjust = 1)
+            ) + 
+            scale_y_continuous(
+              expand = expansion(mult = c(0, 0.2))
+            )
         }
       }
       return(p)
@@ -316,7 +509,9 @@ server <- function(input, output, session) {
   output$plot_hasil <- renderPlot({ plot_obj() })
   
   output$download_plot <- downloadHandler(
-    filename = function() { paste("Visualisasi-Data-", Sys.Date(), ".png", sep = "") },
+    filename = function() {
+      paste("Visualisasi-Data-", Sys.Date(), ".png", sep = "")
+    },
     content = function(file) {
       ggsave(file, plot = plot_obj(), width = 10, height = 7, dpi = 300, bg = "#ffffff")
     }

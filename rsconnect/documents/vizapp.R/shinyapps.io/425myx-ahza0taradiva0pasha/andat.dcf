@@ -5,7 +5,7 @@ account: 425myx-ahza0taradiva0pasha
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 17159156
-bundleId:
+bundleId: 11870913
 url: https://ahzasasa.shinyapps.io/andat/
 version: 1
 asMultiple: FALSE
