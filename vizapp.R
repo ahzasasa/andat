@@ -23,8 +23,11 @@ ui <- fluidPage(
         text-align: center;
         padding-top: 50px;
       }
+      body, .well, .control-label, span, div, h1, h2, h3, h4, h5, h6, .form-control {
+        transition: background-color 0.4s ease-in-out, color 0.4s ease-in-out, border-color 0.4s ease-in-out !important;
+      }
     ")),
-    uiOutput("dynamic_css")
+    uiOutput("dynamic_css") 
   ),
   
   titlePanel(
@@ -291,7 +294,6 @@ server <- function(input, output, session) {
             aes(label = Label_Lengkap),
             vjust = -0.5,
             size = 6.5,
-            fontface = "bold",
             family = "sans",
             color = warna_teks
           ) +
@@ -323,7 +325,6 @@ server <- function(input, output, session) {
             aes(label = Label_Lengkap),
             hjust = -0.1,
             size = 6.5,
-            fontface = "bold",
             family = "sans",
             color = warna_teks
           ) +
@@ -358,8 +359,7 @@ server <- function(input, output, session) {
             aes(label = Label_Persen),
             position = position_stack(vjust = 0.5), 
             color = "#ffffff",
-            fontface = "bold",
-            size = 6.5,
+            size = 5,
             family = "sans"
           ) + 
           labs(
@@ -392,8 +392,7 @@ server <- function(input, output, session) {
             color = "#ffffff",
             place = "centre",
             grow = FALSE,
-            size = 24,
-            fontface = "bold"
+            size = 24
           ) + 
           labs(
             title = judul_grafik
