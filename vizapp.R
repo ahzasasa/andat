@@ -138,6 +138,8 @@ server <- function(input, output, session) {
              Label_Lengkap = paste0(Frekuensi, " (", Label_Persen, ")"))
     
     # color palette
+    warna_tunggal <- ifelse(opsi_palet == "pelangi", "#eea903", "#4a605e")
+    
     if (opsi_palet == "pelangi") {
       warna_custom <- c("#DE2C2D", "#F37121", "#FAD201", "#8CC63F", "#1389CA", "#662D91")
     } else {
@@ -157,8 +159,8 @@ server <- function(input, output, session) {
     
     # geom visualisasi
     if (jenis == "Column") {
-      p <- ggplot(df_clean, aes(x = reorder(.data[[kolom]], -Frekuensi), y = Frekuensi, fill = .data[[kolom]])) +
-        geom_col(color = "white") +
+      p <- ggplot(df_clean, aes(x = reorder(.data[[kolom]], -Frekuensi), y = Frekuensi)) +
+        geom_col(fill = warna_tunggal, color = "white") +
         scale_fill_manual(values = palet_dinamis) +
         geom_text(aes(label = Label_Lengkap), vjust = -0.5, size = 4.5, family = "serif") +
         labs(title = judul_grafik, x = "Kategori Jawaban", y = "Jumlah (Frekuensi)") +
@@ -167,8 +169,8 @@ server <- function(input, output, session) {
         scale_y_continuous(expand = expansion(mult = c(0, 0.2)))
       
     } else if (jenis == "Bar") {
-      p <- ggplot(df_clean, aes(x = reorder(.data[[kolom]], Frekuensi), y = Frekuensi, fill = .data[[kolom]])) +
-        geom_col(color = "white") +
+      p <- ggplot(df_clean, aes(x = reorder(.data[[kolom]], Frekuensi), y = Frekuensi)) +
+        geom_col(fill = warna_tunggal, color = "white") +
         scale_fill_manual(values = palet_dinamis) +
         geom_text(aes(label = Label_Lengkap), hjust = -0.1, size = 4.5, family = "serif") +
         coord_flip() + labs(title = judul_grafik, x = "Kategori Jawaban", y = "Jumlah (Frekuensi)") +
@@ -200,9 +202,9 @@ server <- function(input, output, session) {
         theme_minimal() + tema_teks
       
       if (opsi_palet == "pelangi") {
-        c_line1 <- "#1389CA"; c_point1 <- "#DE2C2D"
-        c_area2 <- "#FAD201"; c_line2 <- "#F37121"; c_point2 <- "#662D91"
-        c_scat <- "#8CC63F"
+        c_line1 <- "#EEA903"; c_point1 <- "#4A605E"
+        c_area2 <- "#EEC963"; c_line2 <- "#EEA903"; c_point2 <- "#4A605E"
+        c_scat <- "#4A605E"
       } else {
         c_line1 <- "#0072B2"; c_point1 <- "#D55E00"
         c_area2 <- "#56B4E9"; c_line2 <- "#0072B2"; c_point2 <- "#E69F00"
