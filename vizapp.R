@@ -358,8 +358,8 @@ server <- function(input, output, session) {
           geom_text(
             aes(label = Label_Persen),
             position = position_stack(vjust = 0.5), 
-            color = "#ffffff",
-            size = 5,
+            color = "#000",
+            size = 6.5,
             family = "sans"
           ) + 
           labs(
