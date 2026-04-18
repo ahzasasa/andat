@@ -17,7 +17,7 @@ ui <- fluidPage(
   tags$head(
     tags$style(HTML("
       .shiny-output-error-validation {
-        color: #DE2C2D !important; /* Memaksa teks jadi warna merah elegan */
+        color: #DE2C2D !important;
         font-size: 18px;
         font-weight: bold;
         text-align: center;
