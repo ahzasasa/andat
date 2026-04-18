@@ -125,14 +125,14 @@ server <- function(input, output, session) {
     }
     
     # data cleaning
-    df_clean <- df %>%
-      select(all_of(kolom)) %>%
-      filter(.data[[kolom]] != "" & !is.na(.data[[kolom]])) %>%
-      separate_rows(all_of(kolom), sep = ",") %>%
-      mutate(!!kolom := str_trim(.data[[kolom]])) %>%
-      count(.data[[kolom]], name = "Frekuensi") %>%
-      arrange(desc(Frekuensi)) %>%
-      slice_head(n = input$top_n) %>%
+    df_clean <- df |> 
+      select(all_of(kolom)) |> 
+      filter(.data[[kolom]] != "" & !is.na(.data[[kolom]])) |> 
+      separate_rows(all_of(kolom), sep = ",") |> 
+      mutate(!!kolom := str_trim(.data[[kolom]])) |> 
+      count(.data[[kolom]], name = "Frekuensi") |> 
+      arrange(desc(Frekuensi)) |> 
+      slice_head(n = input$top_n) |> 
       mutate(Persentase = Frekuensi / sum(Frekuensi) * 100,
              Label_Persen = paste0(round(Persentase, 1), "%"),
              Label_Lengkap = paste0(Frekuensi, " (", Label_Persen, ")"))
@@ -149,12 +149,12 @@ server <- function(input, output, session) {
     palet_dinamis <- colorRampPalette(warna_custom)(nrow(df_clean))
     names(palet_dinamis) <- df_clean[[kolom]]
     
-    # warna judul
+    # tema teks
     tema_teks <- theme(
-      text = element_text(family = "serif"),
-      plot.title = element_text(size = 16, face = "bold", hjust = 0.5, family = "serif", color = "black"),
-      axis.title = element_text(family = "serif", face = "bold"),
-      axis.text = element_text(family = "serif", size = 11)
+      text = element_text(family = "sans"),
+      plot.title = element_text(size = 18, face = "bold", hjust = 0.5, family = "sans", color = "black"),
+      axis.title = element_text(family = "sans", face = "bold", size = 14, color = "black"),
+      axis.text = element_text(family = "sans", size = 13, color = "black")
     )
     
     # geom visualisasi
@@ -162,7 +162,7 @@ server <- function(input, output, session) {
       p <- ggplot(df_clean, aes(x = reorder(.data[[kolom]], -Frekuensi), y = Frekuensi)) +
         geom_col(fill = warna_tunggal, color = "white") +
         scale_fill_manual(values = palet_dinamis) +
-        geom_text(aes(label = Label_Lengkap), vjust = -0.5, size = 4.5, family = "serif") +
+        geom_text(aes(label = Label_Lengkap), vjust = -0.5, size = 4.5, family = "sans") +
         labs(title = judul_grafik, x = "Kategori Jawaban", y = "Jumlah (Frekuensi)") +
         theme_minimal() + tema_teks +
         theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none") +
@@ -172,7 +172,7 @@ server <- function(input, output, session) {
       p <- ggplot(df_clean, aes(x = reorder(.data[[kolom]], Frekuensi), y = Frekuensi)) +
         geom_col(fill = warna_tunggal, color = "white") +
         scale_fill_manual(values = palet_dinamis) +
-        geom_text(aes(label = Label_Lengkap), hjust = -0.1, size = 4.5, family = "serif") +
+        geom_text(aes(label = Label_Lengkap), hjust = -0.1, size = 4.5, family = "sans") +
         coord_flip() + labs(title = judul_grafik, x = "Kategori Jawaban", y = "Jumlah (Frekuensi)") +
         theme_minimal() + tema_teks + theme(legend.position = "none") +
         scale_y_continuous(expand = expansion(mult = c(0, 0.2)))
@@ -183,17 +183,17 @@ server <- function(input, output, session) {
         coord_polar("y", start = 0) +
         scale_fill_manual(values = palet_dinamis) +
         geom_text(aes(label = Label_Persen), position = position_stack(vjust = 0.5), 
-                  color = "black", fontface = "bold", size = 5, family = "serif") +
+                  color = "black", fontface = "bold", size = 5, family = "sans") +
         labs(title = judul_grafik, fill = "Kategori Jawaban") + theme_void() + 
-        theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5, family = "serif", color = "black"),
-              legend.text = element_text(family = "serif", size = 11),
-              legend.title = element_text(family = "serif", face = "bold", size = 12))
+        theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5, family = "sans", color = "black"),
+              legend.text = element_text(family = "sans", size = 11),
+              legend.title = element_text(family = "sans", face = "bold", size = 12))
       
     } else if (jenis == "Treemap") {
       p <- ggplot(df_clean, aes(area = Frekuensi, fill = .data[[kolom]], label = paste0(.data[[kolom]], "\n", Label_Persen))) +
         geom_treemap(color = "white") +
         scale_fill_manual(values = palet_dinamis) +
-        geom_treemap_text(family = "serif", color = "black", place = "centre", grow = FALSE, size = 14, fontface = "bold") +
+        geom_treemap_text(family = "sans", color = "black", place = "centre", grow = FALSE, size = 14, fontface = "bold") +
         labs(title = judul_grafik) + theme_minimal() + tema_teks + theme(legend.position = "none")
       
     } else {
@@ -214,7 +214,7 @@ server <- function(input, output, session) {
       if (jenis == "Line") {
         p <- p_base + geom_line(aes(group = 1), color = c_line1, linewidth = 1.2) + 
           geom_point(color = c_point1, size = 4) + 
-          geom_text(aes(label = Label_Persen), vjust = -1, size = 4.5, family = "serif") +
+          geom_text(aes(label = Label_Persen), vjust = -1, size = 4.5, family = "sans") +
           theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_continuous(expand = expansion(mult = c(0, 0.2)))
         
       } else if (jenis == "Area") {
@@ -225,7 +225,7 @@ server <- function(input, output, session) {
         
       } else if (jenis == "X Y (Scatter)") {
         p <- p_base + geom_point(color = c_scat, size = 6, alpha = 0.9) + 
-          geom_text(aes(label = Label_Persen), vjust = -1.5, size = 4.5, family = "serif") +
+          geom_text(aes(label = Label_Persen), vjust = -1.5, size = 4.5, family = "sans") +
           theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_continuous(expand = expansion(mult = c(0, 0.2)))
       }
     }
