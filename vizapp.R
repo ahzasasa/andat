@@ -143,9 +143,12 @@ server <- function(input, output, session) {
   output$dynamic_css <- renderUI({
     if (isTRUE(input$dark_mode)) {
       tags$style(HTML("
-        .well, .control-label, b, .radio, .checkbox, span {color: #ffffff !important;}
-        .form-control, .selectize-input {background-color: #333333; color: #ffffff; border-color: #555555;}
-        .selectize-dropdown {background-color: #333333; color: #ffffff;}
+        .control-label, b, .help-block, .radio, .checkbox { color: #ffffff !important;}
+        .form-control {background-color: #2b2b2b !important; color: #ffffff !important; border: 1px solid #555 !important;}
+        .selectize-input, .selectize-input.full {background-color: #2b2b2b !important; border: 1px solid #555 !important;}
+        .selectize-input > input, .selectize-input .item { color: #ffffff !important; text-shadow: none !important; }
+        .selectize-dropdown {background-color: #2b2b2b !important; color: #ffffff !important; border: 1px solid #555 !important;}
+        .selectize-dropdown .active {background-color: #1389CA !important; color: #ffffff !important;}
       "))
     } else {
       tags$style(HTML(""))
