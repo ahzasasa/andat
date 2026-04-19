@@ -143,12 +143,71 @@ server <- function(input, output, session) {
   output$dynamic_css <- renderUI({
     if (isTRUE(input$dark_mode)) {
       tags$style(HTML("
-        .control-label, b, .help-block, .radio, .checkbox { color: #ffffff !important;}
-        .form-control {background-color: #2b2b2b !important; color: #ffffff !important; border: 1px solid #555 !important;}
-        .selectize-input, .selectize-input.full {background-color: #2b2b2b !important; border: 1px solid #555 !important;}
-        .selectize-input > input, .selectize-input .item { color: #ffffff !important; text-shadow: none !important; }
-        .selectize-dropdown {background-color: #2b2b2b !important; color: #ffffff !important; border: 1px solid #555 !important;}
-        .selectize-dropdown .active {background-color: #1389CA !important; color: #ffffff !important;}
+        /* background */
+        body {
+          background-color: #1e1e1e !important;
+          color: #ffffff !important;
+        }
+        .well {
+          background-color: #2b2b2b !important;
+          border: none !important;
+        }
+        hr {
+          border-top-color: #444444 !important;
+        }
+        
+        /* teks label */
+        .control-label, b, .help-block, .radio, .checkbox {
+          color: #ffffff !important;
+        }
+        
+        /* kotak input */
+        .form-control, select {
+          background-color: #2b2b2b !important;
+          color: #ffffff !important;
+          border: 1px solid #555 !important;
+        }
+        
+        /* placeholder */
+        .form-control::placeholder {
+          color: #bbbbbb !important;
+          opacity: 1 !important;
+        }
+        .selectize-input > input::placeholder {
+          color: #bbbbbb !important;
+        }
+        
+        /* tombol telusuri */
+        .input-group-btn .btn {
+          background-color: #4a605e !important;
+          color: #ffffff !important;
+          border: 1px solid #555 !important;
+        }
+        .input-group-btn .btn:hover {
+          background-color: #af7d36 !important;
+        }
+        
+        /* select input */
+        .selectize-control.single .selectize-input, .selectize-input, .selectize-input.full { 
+          background-color: #2b2b2b !important; 
+          background-image: none !important; 
+          box-shadow: none !important;       
+          border: 1px solid #555 !important; 
+          color: #ffffff !important;
+        }
+        .selectize-input > input, .selectize-input .item { 
+          color: #ffffff !important; 
+          text-shadow: none !important; 
+        }
+        .selectize-dropdown { 
+          background-color: #2b2b2b !important; 
+          color: #ffffff !important; 
+          border: 1px solid #555 !important; 
+        }
+        .selectize-dropdown .active {
+          background-color: #1389CA !important;
+          color: #ffffff !important;
+        }
       "))
     } else {
       tags$style(HTML(""))
@@ -361,7 +420,7 @@ server <- function(input, output, session) {
           geom_text(
             aes(label = Label_Persen),
             position = position_stack(vjust = 0.5), 
-            color = "#000",
+            color = "#fff",
             size = 6.5,
             family = "sans"
           ) + 
